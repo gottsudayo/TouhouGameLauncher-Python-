@@ -14,7 +14,7 @@ kensaku.geometry("300x100")
 kensakuchu = ttk.Label(kensaku,text="ディレクトリ検索中",font=(30))
 kensakuchu.pack()
 
-def get_game():
+def get_game(event):
     n = gamelist.curselection()
     global selected_game
     selected_game = gamelist.get(n)
@@ -59,6 +59,7 @@ for i in folder.glob("**/th[0-9][0-9].exe"):
     
 print(Ingames)
 
+jogai = 0
 for jogai in Ingames:
     if "AppData" in jogai:
         Ingames.pop(Ingames.index(jogai))
@@ -96,9 +97,10 @@ for item in item_game_list:
 gamelist.bind("<<ListboxSelect>>",get_game)
 
 def launch_game():
-    
+    launch_games = launch_list[selected_game]
+    result_search_index = [0 for j in range(len())]
 
-#game_exe = ttk.Button(launcher,text="ゲームを起動",font=24,command=)
+game_exe = ttk.Button(launcher,text="ゲームを起動",command=launch_game)
 
 kensaku.destroy()
 launcherLabel.pack()

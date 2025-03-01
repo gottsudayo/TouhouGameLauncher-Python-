@@ -512,7 +512,7 @@ def launch_custom():
                         subprocess.run(result2,shell=True,cwd=result)
                     else:
                         messagebox.showerror("エラー",f"custom.exeが見つかりませんでした。同じ階層に入れてください。\n正しい位置：{result}")
-                except TypeError as e:
+                except IndexError as e:
                     messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
             
             def open_custom_cancel():

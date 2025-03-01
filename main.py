@@ -29,8 +29,11 @@ folder = Path("C:\\Users\\" + user)
 file_names = {}
 p = Path('data.json')
 if os.path.isfile(p.resolve()):
-    with open('data.json',mode="r",encoding="utf-8") as f:
-        file_names = json.load(f)
+    try:
+        with open('data.json',mode="r",encoding="utf-8") as f:
+            file_names = json.load(f)
+    except TypeError as e:
+        messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
 else:
     messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
     exit()

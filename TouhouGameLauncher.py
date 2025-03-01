@@ -18,10 +18,52 @@ import sys
 from time import sleep
 
 #続いていろいろな関数の定義
+dire = []
 
 def exit_py():
     app = False
     sys.exit()
+    
+#data.jsonの読み込み
+file_names = {}
+p = Path('data.json')
+if os.path.isfile(p.resolve()):
+    try:
+        with open('data.json',mode="r",encoding="utf-8") as f:
+            file_names = json.load(f)
+    except TypeError as e:
+        messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
+        exit_py()
+else:
+    messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
+    exit_py()
+    
+#dire.jsonの読み込み
+p = Path('dire.json')
+if os.path.isfile(p.resolve()):
+    try:
+        with open('dire.json',mode="r",encoding="utf-8") as f:
+            dire = json.load(f)
+    except TypeError as e:
+        messagebox.showerror("エラー",f"dict.jsonファイルの読み込みに失敗しました。\nランチャーを再ダウンロードするか、dict.jsonの中身を戻してください。\nTypeError : {e}")
+        exit_py()
+else:
+    messagebox.showerror("エラー","dict.jsonファイルが同じフォルダの中に見つかりません。必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
+    exit_py()
+    
+#dire.jsonのディレクトリが存在していればスルー、1つでも存在していないものがあれば自動的にリロードするため、direを初期化。
+for i in dire:
+    if os.path.exists(i) == False:
+        print(os.path.exists(i))
+        print("ディレクトリ：" + i + "、非存在")
+        print("リストを初期化")
+        dire = []
+        with open("dire.json","w") as f:
+            json.dump(dire,f)
+        break
+    else:
+        print(os.path.exists(i))
+        print("ディレクトリ：" + i + "、存在確認")
 
 def selected_index():
     selected_game2 = gamelist.curselection()
@@ -32,16 +74,9 @@ global app
 app = True
 
 #検索をするためのとても重要な関数
-def load():
+def file_load():
     #様々な変数のグローバル化
     global Ingames
-    global Incustom
-    global check_game
-    global gamelist
-    global file_names
-    global result_search_index
-    global result_search_index_games
-    global result_search_index_custom
     global user
     global kensaku
     
@@ -56,28 +91,26 @@ def load():
     
     user = getpass.getuser()
     folder = Path("C:\\Users\\" + user)
-
-    #data.jsonの読み込み
-    file_names = {}
-    p = Path('data.json')
-    if os.path.isfile(p.resolve()):
-        try:
-            with open('data.json',mode="r",encoding="utf-8") as f:
-                file_names = json.load(f)
-        except TypeError as e:
-            messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
-    else:
-        messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
-        exit_py()
     
     Ingames = []
-    Incustom = []
-    check_game = [0 for i in range(26)]
-    
+    kensaku.update()
     for i in folder.glob("**/th[0-9][0-9].exe"):
         Ingames.append(str(i))
-        kensaku.update()
         
+
+def load():
+    #様々な変数のグローバル化2
+    global gamelist
+    global file_names
+    global result_search_index
+    global result_search_index_games
+    global result_search_index_custom
+    global Incustom
+    global check_game
+    global dire
+    
+    Incustom = []
+    check_game = [0 for i in range(26)]
     #AppDataになんか生成される人もいるので除外。なんかバグあり。
     jogai = 0
     for jogai in Ingames:
@@ -140,24 +173,18 @@ def load():
             Incustom.append(i.replace("th18.exe", "custom.exe"))
         if "th19.exe" in i:
             Incustom.append(i.replace("th19.exe", "custom.exe"))
-
-    #表示は一瞬だが、インデックス作成時のウィンドウ
-    kensakuchu = ttk.Label(text="インデックス作成中",font=30)
-    kensaku.update()
-    kensaku.update_idletasks()
+    
     for j in range(len(Ingames)):
         for i in range(len(game_name)):
             if game_name[i] in Ingames[j]:
                 check_game[i] = 1
-
     
-
     #PCに存在するゲーム名（実行可能ファイル名）の抽出
     item_game_list = []
     for k in range(len(check_game)):
         if check_game[k] == 1:
             item_game_list.append(game_name[k])
-
+    
     #Listbox（GUI）に先ほど検索したものを列挙する
     launch_list = []
     game_list = []
@@ -169,10 +196,10 @@ def load():
     gamelist_var = StringVar(launcher,value=game_list)
     gamelist = Listbox(launcher,width=490,font=20,height=15,listvariable=gamelist_var)
     gamelist_var.set(game_list)
-
+    
     result_search_index_games = []
     result_search_index_custom = []
-
+    
     #選択されたゲームのファイルの候補を出す
     #Ingames：見つかったゲームのディレクトリ
     for ll in range(len(launch_list)):
@@ -180,18 +207,38 @@ def load():
         for ig in range(len(Ingames)):
             if launch_list[ll] in Ingames[ig]:
                 result_search_index_games[ll].append(Ingames[ig])
-
+                
     #選択されたcustom.exeの候補を出す
     for ll in range(len(launch_list)):
         result_search_index_custom.append([])
         for ig in range(len(Ingames)):
             if launch_list[ll] in Ingames[ig]:
                 result_search_index_custom[ll].append(Incustom[ig])
+    
+    #direに要素を追加
+    dire = []
+    for i in Ingames:
+        dire.append(i)
+    #direを元にdire.jsonを更新
+    with open('dire.json',"w") as f:
+        json.dump(dire,f)
+    
 
-    
-    kensaku.destroy()
-    
 def reload():
+    #data.jsonの読み込み
+    file_names = {}
+    p = Path('data.json')
+    if os.path.isfile(p.resolve()):
+        try:
+            with open('data.json',mode="r",encoding="utf-8") as f:
+                file_names = json.load(f)
+        except TypeError as e:
+            messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
+            exit_py()
+    else:
+        messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
+        exit_py()
+    
     #メインウィンドウ再生成
     global launcher
     launcher.destroy()
@@ -200,6 +247,8 @@ def reload():
     launcher.geometry("500x410")
     launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
     #ディレクトリ検索
+    file_load()
+    #インデックス作成
     load()
     #オブジェクト配置
     game_exe = Button(launcher,text="ゲームを起動",command=launch_game,font=20)
@@ -211,6 +260,7 @@ def reload():
     game_exe.pack(side=LEFT)
     custom_exe.pack(side=LEFT)
     list_update.pack(side=LEFT)
+    kensaku.destroy()
 
 #「ゲーム実行ファイル名：東方のゲーム名等」でまとめてあるリスト
 #新しいゲームが出たらここを変更する
@@ -251,16 +301,25 @@ launcher.title("東方原作ランチャー ver.1.2.0")
 launcher.geometry("500x410")
 launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
 #ここで読み込み関数実行
-load()
+if len(dire) == 0:
+    file_load()
+    load()
+    kensaku.destroy()
+else:
+    global Ingames
+    Ingames = []
+    for i in dire:
+        Ingames.append(i)
+    load()
 
-def json_update():
+def data_json_update():
     for i in file_names.values():
         i = i.replace("\\", "\\\\")
     json_data = codecs.open("data.json","w","utf-8")
     json.dump(file_names, json_data, indent=2, ensure_ascii=False)
     json_data.close()
     messagebox.showinfo("メッセージ","データの保存が完了しました。")
-    messagebox.showinfo("メッセージ","変更はランチャーを再起動したら適用されます。")
+    reload()
 
 def launch_game():
     #thXX.exeを起動するための処理
@@ -367,7 +426,7 @@ def launch_game():
                         rename_e = rename_entry.get()
                         if len(rename_e) > 0:
                             file_names[result] = rename_e
-                            json_update()
+                            data_json_update()
                             renames = False
                             rename_window.destroy()
                         elif "\\" in rename_e:
@@ -380,7 +439,7 @@ def launch_game():
                         question = messagebox.askquestion("表示名リセット",f"表示名「{hyouji}」を本当にリセットしますか？")
                         if question == 'yes':
                             file_names.pop(result_search_index_games[selected_game][open_games])
-                            json_update()
+                            data_json_update()
                     
                     def rename_c():
                         renames = False

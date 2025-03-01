@@ -1,3 +1,7 @@
+"""管理人用メモ
+1.東方の新しい原作が出たら「#新しいゲームが出たらここを変更する」を検索にかけてそれぞれ追加する
+2.バグはさっさと潰す
+"""
 #まずはライブラリのインポートから
 from tkinter import *
 from tkinter import Tk
@@ -10,33 +14,203 @@ import subprocess
 import json
 import os
 import codecs
+import sys
+from time import sleep
 
-#ディレクトリ検索用のウィンドウを生成する。表示処理はこれより50行下
-kensaku = Tk()
-kensaku.title("東方原作ランチャー ver.1.1.0")
-kensaku.geometry("300x100")
-kensakuchu = ttk.Label(kensaku,text="ディレクトリ検索中",font=(30))
-kensakuchu.pack()
+#続いていろいろな関数の定義
+
+def exit_py():
+    app = False
+    sys.exit()
 
 def selected_index():
     selected_game2 = gamelist.curselection()
     global selected_game
     selected_game = selected_game2[0]
+    
+global app
+app = True
 
-user = getpass.getuser()
-folder = Path("C:\\Users\\" + user)
+#検索をするためのとても重要な関数
+def load():
+    #様々な変数のグローバル化
+    global Ingames
+    global Incustom
+    global check_game
+    global gamelist
+    global file_names
+    global result_search_index
+    global result_search_index_games
+    global result_search_index_custom
+    global user
+    global kensaku
+    
+    #ディレクトリ検索用のウィンドウを生成する。
+    kensaku = Tk()
+    kensaku.title("東方原作ランチャー ver.1.2.0")
+    kensaku.geometry("300x100")
+    kensakuchu = ttk.Label(kensaku,text="ディレクトリ検索中",font=(30))
+    kensakuchu.pack()
+    kensaku.update()
+    kensaku.lift()
+    
+    user = getpass.getuser()
+    folder = Path("C:\\Users\\" + user)
 
-file_names = {}
-p = Path('data.json')
-if os.path.isfile(p.resolve()):
-    try:
-        with open('data.json',mode="r",encoding="utf-8") as f:
-            file_names = json.load(f)
-    except TypeError as e:
-        messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
-else:
-    messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
-    exit()
+    #data.jsonの読み込み
+    file_names = {}
+    p = Path('data.json')
+    if os.path.isfile(p.resolve()):
+        try:
+            with open('data.json',mode="r",encoding="utf-8") as f:
+                file_names = json.load(f)
+        except TypeError as e:
+            messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
+    else:
+        messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
+        exit_py()
+    
+    Ingames = []
+    Incustom = []
+    check_game = [0 for i in range(26)]
+    
+    for i in folder.glob("**/th[0-9][0-9].exe"):
+        Ingames.append(str(i))
+        kensaku.update()
+        
+    #AppDataになんか生成される人もいるので除外。なんかバグあり。
+    jogai = 0
+    for jogai in Ingames:
+        if "AppData" in jogai:
+            Ingames.pop(Ingames.index(jogai))
+    
+    
+    #custom.exe起動用にリストを作っておく
+    #新しいゲームが出たらここを変更する
+    for i in Ingames:
+        if "th06.exe" in i:
+            Incustom.append(i.replace("th06.exe", "custom.exe"))
+        if "th07.exe" in i:
+            Incustom.append(i.replace("th07.exe", "custom.exe"))
+        if "th075.exe" in i:
+            Incustom.append(i.replace("th075.exe", "custom.exe"))
+        if "th08.exe" in i:
+            Incustom.append(i.replace("th08.exe", "custom.exe"))
+        if "th09.exe" in i:
+            Incustom.append(i.replace("th09.exe", "custom.exe"))
+        if "th095.exe" in i:
+            Incustom.append(i.replace("th095.exe", "custom.exe"))
+        if "th10.exe" in i:
+            Incustom.append(i.replace("th10.exe", "custom.exe"))
+        if "th105.exe" in i:
+            Incustom.append(i.replace("th105.exe", "custom.exe"))
+        if "th11.exe" in i:
+            Incustom.append(i.replace("th11.exe", "custom.exe"))
+        if "th12.exe" in i:
+            Incustom.append(i.replace("th12.exe", "custom.exe"))
+        if "th123.exe" in i:
+            Incustom.append(i.replace("th123.exe", "custom.exe"))
+        if "th125.exe" in i:
+            Incustom.append(i.replace("th125.exe", "custom.exe"))
+        if "th128.exe" in i:
+            Incustom.append(i.replace("th128.exe", "custom.exe"))
+        if "th13.exe" in i:
+            Incustom.append(i.replace("th13.exe", "custom.exe"))
+        if "th135.exe" in i:
+            Incustom.append(i.replace("th135.exe", "custom.exe"))
+        if "th14.exe" in i:
+            Incustom.append(i.replace("th14.exe", "custom.exe"))
+        if "th143.exe" in i:
+            Incustom.append(i.replace("th143.exe", "custom.exe"))
+        if "th145.exe" in i:
+            Incustom.append(i.replace("th145.exe", "custom.exe"))
+        if "th15.exe" in i:
+            Incustom.append(i.replace("th15.exe", "custom.exe"))
+        if "th155.exe" in i:
+            Incustom.append(i.replace("th155.exe", "custom.exe"))
+        if "th16.exe" in i:
+            Incustom.append(i.replace("th16.exe", "custom.exe"))
+        if "th165.exe" in i:
+            Incustom.append(i.replace("th165.exe", "custom.exe"))
+        if "th17.exe" in i:
+            Incustom.append(i.replace("th17.exe", "custom.exe"))
+        if "th175.exe" in i:
+            Incustom.append(i.replace("th175.exe", "custom.exe"))
+        if "th18.exe" in i:
+            Incustom.append(i.replace("th18.exe", "custom.exe"))
+        if "th19.exe" in i:
+            Incustom.append(i.replace("th19.exe", "custom.exe"))
+
+    #表示は一瞬だが、インデックス作成時のウィンドウ
+    kensakuchu = ttk.Label(text="インデックス作成中",font=30)
+    kensaku.update()
+    kensaku.update_idletasks()
+    for j in range(len(Ingames)):
+        for i in range(len(game_name)):
+            if game_name[i] in Ingames[j]:
+                check_game[i] = 1
+
+    
+
+    #PCに存在するゲーム名（実行可能ファイル名）の抽出
+    item_game_list = []
+    for k in range(len(check_game)):
+        if check_game[k] == 1:
+            item_game_list.append(game_name[k])
+
+    #Listbox（GUI）に先ほど検索したものを列挙する
+    launch_list = []
+    game_list = []
+    for item in item_game_list:
+        launch_list.append(item)
+        game_list.append(games[item])
+    
+    #存在するゲームの候補を出すListBox
+    gamelist_var = StringVar(launcher,value=game_list)
+    gamelist = Listbox(launcher,width=490,font=20,height=15,listvariable=gamelist_var)
+    gamelist_var.set(game_list)
+
+    result_search_index_games = []
+    result_search_index_custom = []
+
+    #選択されたゲームのファイルの候補を出す
+    #Ingames：見つかったゲームのディレクトリ
+    for ll in range(len(launch_list)):
+        result_search_index_games.append([])
+        for ig in range(len(Ingames)):
+            if launch_list[ll] in Ingames[ig]:
+                result_search_index_games[ll].append(Ingames[ig])
+
+    #選択されたcustom.exeの候補を出す
+    for ll in range(len(launch_list)):
+        result_search_index_custom.append([])
+        for ig in range(len(Ingames)):
+            if launch_list[ll] in Ingames[ig]:
+                result_search_index_custom[ll].append(Incustom[ig])
+
+    
+    kensaku.destroy()
+    
+def reload():
+    #メインウィンドウ再生成
+    global launcher
+    launcher.destroy()
+    launcher = Tk()
+    launcher.title("東方原作ランチャー ver.1.2.0")
+    launcher.geometry("500x410")
+    launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
+    #ディレクトリ検索
+    load()
+    #オブジェクト配置
+    game_exe = Button(launcher,text="ゲームを起動",command=launch_game,font=20)
+    custom_exe = Button(launcher,text="custom.exeを起動",command=launch_custom,font=20)
+    list_update = Button(launcher,text="リストを更新",command=reload,font=20)
+
+    launcherLabel.pack()
+    gamelist.pack()
+    game_exe.pack(side=LEFT)
+    custom_exe.pack(side=LEFT)
+    list_update.pack(side=LEFT)
 
 #「ゲーム実行ファイル名：東方のゲーム名等」でまとめてあるリスト
 #新しいゲームが出たらここを変更する
@@ -67,135 +241,19 @@ games = {"th06.exe":["東方紅魔郷","とうほうこうまきょう","2002"],
          "th18.exe":["東方虹龍洞","とうほうこうりゅうどう","2021"],
          "th185.exe":["バレットフィリア達の闇市場","ばれっとふぃりあたちのやみいちば","2022"],
          "th19.exe":["東方獣王園","とうほうじゅうおうえん","2023"]}
-Ingames = []
-Incustom = []
-game_name = ["th06.exe","th07.exe","th075.exe","th08.exe","th09.exe","th095.exe","th10.exe","th105.exe","th11.exe","th12.exe","th123.exe","th125.exe","th128.exe","th13.exe","th135.exe","th14.exe","th143.exe","th145.exe","th15.exe","th155.exe","th16.exe","th165.exe","th17.exe","th18.exe","th185.exe","th19.exe"]
-check_game = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-for i in folder.glob("**/th[0-9][0-9].exe"):
-    Ingames.append(str(i))
-    kensaku.update()
-    
-print(Ingames)
-
-#AppDataになんか生成される人もいるので除外。なんかバグあり。
-jogai = 0
-for jogai in Ingames:
-    if "AppData" in jogai:
-        Ingames.pop(Ingames.index(jogai))
-        
-print(Ingames)
-
-#custom.exe起動用にリストを作っておく
 #新しいゲームが出たらここを変更する
-for i in Ingames:
-    if "th06.exe" in i:
-        Incustom.append([i.replace("th06.exe", "custom.exe"), "th06.exe"])
-    if "th07.exe" in i:
-        Incustom.append([i.replace("th07.exe", "custom.exe"), "th07.exe"])
-    if "th075.exe" in i:
-        Incustom.append([i.replace("th075.exe", "custom.exe"),"th075.exe"])
-    if "th08.exe" in i:
-        Incustom.append([i.replace("th08.exe", "custom.exe"),"th08.exe"])
-    if "th09.exe" in i:
-        Incustom.append([i.replace("th09.exe", "custom.exe"),"th09.exe"])
-    if "th095.exe" in i:
-        Incustom.append([i.replace("th095.exe", "custom.exe"),"th095.exe"])
-    if "th10.exe" in i:
-        Incustom.append([i.replace("th10.exe", "custom.exe"),"th10.exe"])
-    if "th105.exe" in i:
-        Incustom.append([i.replace("th105.exe", "custom.exe"),"th105.exe"])
-    if "th11.exe" in i:
-        Incustom.append([i.replace("th11.exe", "custom.exe"),"th11.exe"])
-    if "th12.exe" in i:
-        Incustom.append([i.replace("th12.exe", "custom.exe"),"th12.exe"])
-    if "th123.exe" in i:
-        Incustom.append([i.replace("th123.exe", "custom.exe"),"th123.exe"])
-    if "th125.exe" in i:
-        Incustom.append([i.replace("th125.exe", "custom.exe"),"th125.exe"])
-    if "th128.exe" in i:
-        Incustom.append([i.replace("th128.exe", "custom.exe"),"th128.exe"])
-    if "th13.exe" in i:
-        Incustom.append([i.replace("th13.exe", "custom.exe"),"th13.exe"])
-    if "th135.exe" in i:
-        Incustom.append([i.replace("th135.exe", "custom.exe"),"th135.exe"])
-    if "th14.exe" in i:
-        Incustom.append([i.replace("th14.exe", "custom.exe"),"th14.exe"])
-    if "th143.exe" in i:
-        Incustom.append([i.replace("th143.exe", "custom.exe"),"th143.exe"])
-    if "th145.exe" in i:
-        Incustom.append([i.replace("th145.exe", "custom.exe"),"th145.exe"])
-    if "th15.exe" in i:
-        Incustom.append([i.replace("th15.exe", "custom.exe"),"th15.exe"])
-    if "th155.exe" in i:
-        Incustom.append([i.replace("th155.exe", "custom.exe"),"th155.exe"])
-    if "th16.exe" in i:
-        Incustom.append([i.replace("th16.exe", "custom.exe"),"th16.exe"])
-    if "th165.exe" in i:
-        Incustom.append([i.replace("th165.exe", "custom.exe"),"th165.exe"])
-    if "th17.exe" in i:
-        Incustom.append([i.replace("th17.exe", "custom.exe"),"th17.exe"])
-    if "th175.exe" in i:
-        Incustom.append([i.replace("th175.exe", "custom.exe"),"th175.exe"])
-    if "th18.exe" in i:
-        Incustom.append([i.replace("th18.exe", "custom.exe"),"th18.exe"])
-    if "th19.exe" in i:
-        Incustom.append([i.replace("th19.exe", "custom.exe"),"th19.exe"])
+game_name = ["th06.exe","th07.exe","th075.exe","th08.exe","th09.exe","th095.exe","th10.exe","th105.exe","th11.exe","th12.exe","th123.exe","th125.exe","th128.exe","th13.exe","th135.exe","th14.exe","th143.exe","th145.exe","th15.exe","th155.exe","th16.exe","th165.exe","th17.exe","th18.exe","th185.exe","th19.exe"]
 
-#表示は一瞬だが、インデックス作成時のウィンドウ
-kensakuchu = ttk.Label(text="インデックス作成中",font=30)
-kensaku.update()
-kensaku.update_idletasks()
-for j in range(len(Ingames)):
-    for i in range(len(game_name)):
-        if game_name[i] in Ingames[j]:
-            check_game[i] = 1
-
-print(check_game)
-
-#いよいよメインウィンドウを生成
+#まずはメインウィンドウを生成
 launcher = Tk()
-launcher.title("東方原作ランチャー ver.1.1.0")
+launcher.title("東方原作ランチャー ver.1.2.0")
 launcher.geometry("500x410")
 launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
+#ここで読み込み関数実行
+load()
 
-#存在するゲームの候補を出すListBox
-gamelist = Listbox(launcher,width=490,font=20,height=15)
-
-#PCに存在するゲーム名（実行可能ファイル名）の抽出
-item_game_list = []
-for k in range(len(check_game)):
-    if check_game[k] == 1:
-        item_game_list.append(game_name[k])
-
-#Listbox（GUI）に先ほど検索したものを列挙する
-launch_list = []
-for item in item_game_list:
-    gamelist.insert(END,games[item])
-    launch_list.append(item)
-
-global result_search_index
-result_search_index_games = []
-result_search_index_custom = []
-
-#選択されたゲームのファイルの候補を出す
-#Ingames：見つかったゲームのディレクトリ
-for ll in range(len(launch_list)):
-    result_search_index_games.append([])
-    for ig in range(len(Ingames)):
-        if launch_list[ll] in Ingames[ig]:
-            result_search_index_games[ll].append(Ingames[ig])
-
-#選択されたcustom.exeの候補を出す
-for ll in range(len(launch_list)):
-    for ig in range(len(Ingames)):
-        if launch_list[ll] in Ingames[ig]:
-            result_search_index_custom.append(Incustom[ig])
-            
-print(result_search_index_games)
-print(result_search_index_custom)
-
-def data_update():
+def json_update():
     for i in file_names.values():
         i = i.replace("\\", "\\\\")
     json_data = codecs.open("data.json","w","utf-8")
@@ -208,10 +266,12 @@ def launch_game():
     #thXX.exeを起動するための処理
     try:
         selected_index()
-        if len(result_search_index_games) >= 2:
+        if len(result_search_index_games[selected_game]) >= 2:
+            #ファイル候補を出す
+            global launch_game2
             launch_game2 = Tk()
             launch_game2.geometry("550x200")
-            launch_game2.title("東方原作ランチャー ver.1.1.0")
+            launch_game2.title("東方原作ランチャー ver.1.2.0")
             
             open_list = []
             open_list_h = []
@@ -222,7 +282,6 @@ def launch_game():
                     selected_game4 = launch_game2_list.curselection()
                     open_games = open_list[selected_game4[0]]
                     result = result_search_index_games[selected_game][open_games]
-                    print(result)
                     result2 = result
                     #新しいゲームが出たらここを変更する
                     if ("\\th06.exe" in result) == True:
@@ -277,12 +336,11 @@ def launch_game():
                         result = result.replace('\\th18.exe', '')
                     if ("\\th19.exe" in result) == True:
                         result = result.replace('\\th19.exe', '')
-                    print(result2)
-                    print(result)
                     launcher.destroy()
                     launch_game2.destroy()
+                    print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
                     subprocess.run(result2,shell=True,cwd=result)
-                    exit()
+                    exit_py()
                 except TypeError as e:
                     messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
             
@@ -292,13 +350,14 @@ def launch_game():
             def rename():
                 try:
                     global selected_game4
+                    global rename_window
                     selected_game4 = launch_game2_list.curselection()
                     open_games = open_list[selected_game4[0]]
                     result = result_search_index_games[selected_game][open_games]
                     rename_window = Tk()
                     rename_window.geometry("500x100")
-                    rename_window.title("東方原作ランチャー ver.1.1.0")
-                    rename_label = Label(rename_window,text="以下のディレクトリの表示名を入力してください。",font=30)
+                    rename_window.title("東方原作ランチャー ver.1.2.0")
+                    rename_label = Label(rename_window,text="以下のパスの表示名を入力してください。",font=30)
                     rename_label2 = Label(rename_window,text=result)
                     rename_entry = Entry(rename_window,width=490)
                     if result_search_index_games[selected_game][open_games] in file_names:
@@ -308,7 +367,7 @@ def launch_game():
                         rename_e = rename_entry.get()
                         if len(rename_e) > 0:
                             file_names[result] = rename_e
-                            data_update()
+                            json_update()
                             renames = False
                             rename_window.destroy()
                         elif "\\" in rename_e:
@@ -321,7 +380,7 @@ def launch_game():
                         question = messagebox.askquestion("表示名リセット",f"表示名「{hyouji}」を本当にリセットしますか？")
                         if question == 'yes':
                             file_names.pop(result_search_index_games[selected_game][open_games])
-                            data_update()
+                            json_update()
                     
                     def rename_c():
                         renames = False
@@ -342,7 +401,7 @@ def launch_game():
                 except IndexError as e:
                     messagebox.showerror("エラー",f"ゲームが選択されておりません。\nIndexError : {e}")
             
-            launch_game2_label = ttk.Label(launch_game2,text="該当する項目が複数見つかりました。\nどのディレクトリのゲームを起動するか選択してください。",font=30)
+            launch_game2_label = ttk.Label(launch_game2,text="該当する項目が複数見つかりました。\nどの階層のゲームを起動するか選択してください。",font=30)
             launch_game2_list = Listbox(launch_game2,width=490,font=20,height=5)
             for i in range(len(result_search_index_games[selected_game])):
                 if result_search_index_games[selected_game][i] in file_names:
@@ -352,21 +411,19 @@ def launch_game():
                     launch_game2_list.insert(END,result_search_index_games[selected_game][i])
                     open_list_h.append(result_search_index_games[selected_game][i])
                 open_list.append(i)
-            launch_game2_open = Button(text="ゲーム開始",font=30,command=open_game)
-            launch_game2_rename = Button(text="表示名を編集",font=30,command=rename)
-            launch_game2_cancel = Button(text="キャンセル",font=30,command=open_game_cancel)
+            launch_game2_open = Button(launch_game2,text="ゲーム開始",font=30,command=open_game)
+            launch_game2_rename = Button(launch_game2,text="表示名を編集",font=30,command=rename)
+            launch_game2_cancel = Button(launch_game2,text="キャンセル",font=30,command=open_game_cancel)
             launch_game2_label.pack()
             launch_game2_list.pack()
             launch_game2_open.pack(side=LEFT)
             launch_game2_rename.pack(side=LEFT)
             launch_game2_cancel.pack(side=RIGHT)
             launch_game2.update()
-        elif len(result_search_index_games) == 1:
+        elif len(result_search_index_games[selected_game]) == 1:
             result = result_search_index_games[0][0]
             result2 = result
-            print(result2)
-            print(result)
-            print("\\th07.exe" in result)
+            #新しいゲームが出たらここを変更する
             if ("\\th06.exe" in result) == True:
                 result = result.replace('\\th06.exe', '')
             if ("\\th07.exe" in result) == True:
@@ -419,21 +476,91 @@ def launch_game():
                 result = result.replace('\\th18.exe', '')
             if ("\\th19.exe" in result) == True:
                 result = result.replace('\\th19.exe', '')
-            print(result2)
-            print(result)
             launcher.destroy()
+            print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
             subprocess.run(result2,shell=True,cwd=result)
-            exit()
-        elif len(result_search_index_games) == 0:
+            exit_py()
+        elif len(result_search_index_games[selected_game]) == 0:
             messagebox.showerror("エラー",("指定したゲームが「C:\\Users\\" + user + "」内から見つかりませんでした。"))
     except TypeError as e:
         messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
 
-game_exe = Button(launcher,text="ゲームを起動",command=launch_game,font=20)
+def launch_custom():
+    try:
+        selected_index()
+        if len(result_search_index_custom[selected_game]) >= 2:
+            #ファイル候補を出す
+            global launch_custom2
+            launch_custom2 = Tk()
+            launch_custom2.geometry("550x200")
+            launch_custom2.title("東方原作ランチャー ver.1.2.0")
+            open_list = []
+            open_list_h = []
+            
+            def open_custom():
+                try:
+                    global selected_game4
+                    selected_game4 = launch_custom2_list.curselection()
+                    open_games = open_list[selected_game4[0]]
+                    result = result_search_index_custom[selected_game][open_games]
+                    result2 = result
+                    result = result.replace("\\custom.exe","")
+                    launch_custom2.destroy()
+                    print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
+                    if os.path.isfile(result2):
+                        print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
+                        subprocess.run(result2,shell=True,cwd=result)
+                    else:
+                        messagebox.showerror("エラー",f"custom.exeが見つかりませんでした。同じ階層に入れてください。\n正しい位置：{result}")
+                except TypeError as e:
+                    messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
+            
+            def open_custom_cancel():
+                launch_custom2.destroy()
+            
+            launch_custom2_label = ttk.Label(launch_custom2,text="該当する項目が複数見つかりました。\nどの階層のゲームのcustom.exeを起動するか選択してください。",font=30)
+            launch_custom2_list = Listbox(launch_custom2,width=490,font=20,height=5)
+            for i in range(len(result_search_index_games[selected_game])):
+                if result_search_index_games[selected_game][i] in file_names:
+                    launch_custom2_list.insert(END,file_names[result_search_index_games[selected_game][i]])
+                    open_list_h.append(file_names[result_search_index_games[selected_game][i]])
+                else:
+                    launch_custom2_list.insert(END,result_search_index_games[selected_game][i])
+                    open_list_h.append(result_search_index_games[selected_game][i])
+                open_list.append(i)
+            launch_custom2_open = Button(launch_custom2,text="custom.exeを開く",font=30,command=open_custom)
+            launch_custom2_cancel = Button(launch_custom2,text="キャンセル",font=30,command=open_custom_cancel)
+            launch_custom2_label.pack()
+            launch_custom2_list.pack()
+            launch_custom2_open.pack(side=LEFT)
+            launch_custom2_cancel.pack(side=RIGHT)
+            launch_custom2.mainloop()
+        elif len(result_search_index_custom[selected_game]) == 1:
+            result = result_search_index_custom[0][0]
+            result2 = result
+            result = result.replace("\\custom.exe","")
+            if os.path.isfile(result2):
+                print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
+                subprocess.run(result2,shell=True,cwd=result)
+            else:
+                messagebox.showerror("エラー",f"custom.exeが見つかりませんでした。同じ階層に入れてください。\n正しい位置：{result}")
+        elif len(result_search_index_custom[selected_game]) == 0:
+            messagebox.showerror("エラー",("指定したcustom.exeが「C:\\Users\\" + user + "」内から見つかりませんでした。"))
+    except TypeError as e:
+        messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
+        
 
-kensaku.destroy()
+game_exe = Button(launcher,text="ゲームを起動",command=launch_game,font=20)
+custom_exe = Button(launcher,text="custom.exeを起動",command=launch_custom,font=20)
+list_update = Button(launcher,text="リストを更新",command=reload,font=20)
+
 launcherLabel.pack()
 gamelist.pack()
-game_exe.pack()
+game_exe.pack(side=LEFT)
+custom_exe.pack(side=LEFT)
+list_update.pack(side=LEFT)
+
+launcher.update()
+launcher.lift()
 
 launcher.mainloop()

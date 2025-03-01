@@ -199,8 +199,7 @@ def data_update():
     json.dump(file_names, json_data, indent=2, ensure_ascii=False)
     json_data.close()
     messagebox.showinfo("メッセージ","データの保存が完了しました。")
-    subprocess.Popen([fr"{os.getcwd()}\\restart.bat"])
-    exit()
+    messagebox.showinfo("メッセージ","変更はランチャーを再起動したら適用されます。")
 
 def launch_game():
     #thXX.exeを起動するための処理
@@ -315,10 +314,6 @@ def launch_game():
                             messagebox.showerror("エラー","変更する名前を入力してください。")
                     
                     def rename_r():
-                        #global selected_game4
-                        #selected_game4 = launch_game2_list.curselection()
-                        #open_games = open_list[selected_game4[0]]
-                        #result = result_search_index_games[selected_game][open_games]
                         hyouji = open_list_h[open_games]
                         question = messagebox.askquestion("表示名リセット",f"表示名「{hyouji}」を本当にリセットしますか？")
                         if question == 'yes':

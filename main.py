@@ -7,10 +7,13 @@ from tkinter import messagebox
 from pathlib import Path
 import getpass
 import subprocess
+import json
+import os
+import codecs
 
 #ディレクトリ検索用のウィンドウを生成する。表示処理はこれより50行下
 kensaku = Tk()
-kensaku.title("東方原作ランチャー ver1.0.0")
+kensaku.title("東方原作ランチャー ver.1.1.0")
 kensaku.geometry("300x100")
 kensakuchu = ttk.Label(kensaku,text="ディレクトリ検索中",font=(30))
 kensakuchu.pack()
@@ -22,6 +25,15 @@ def selected_index():
 
 user = getpass.getuser()
 folder = Path("C:\\Users\\" + user)
+
+file_names = {}
+p = Path('data.json')
+if os.path.isfile(p.resolve()):
+    with open('data.json',mode="r",encoding="utf-8") as f:
+        file_names = json.load(f)
+else:
+    messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
+    exit()
 
 #「ゲーム実行ファイル名：東方のゲーム名等」でまとめてあるリスト
 #新しいゲームが出たらここを変更する
@@ -140,7 +152,7 @@ print(check_game)
 
 #いよいよメインウィンドウを生成
 launcher = Tk()
-launcher.title("東方原作ランチャー ver1.0.0")
+launcher.title("東方原作ランチャー ver.1.1.0")
 launcher.geometry("500x410")
 launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
 
@@ -180,6 +192,15 @@ for ll in range(len(launch_list)):
 print(result_search_index_games)
 print(result_search_index_custom)
 
+def data_update():
+    for i in file_names.values():
+        i = i.replace("\\", "\\\\")
+    json_data = codecs.open("data.json","w","utf-8")
+    json.dump(file_names, json_data, indent=2, ensure_ascii=False)
+    json_data.close()
+    messagebox.showinfo("メッセージ","データの保存が完了しました。")
+    subprocess.Popen([fr"{os.getcwd()}\\restart.bat"])
+    exit()
 
 def launch_game():
     #thXX.exeを起動するための処理
@@ -188,91 +209,158 @@ def launch_game():
         if len(result_search_index_games) >= 2:
             launch_game2 = Tk()
             launch_game2.geometry("550x200")
-            launch_game2.title("東方原作ランチャー ver1.0.0")
+            launch_game2.title("東方原作ランチャー ver.1.1.0")
             
             open_list = []
+            open_list_h = []
             
             def open_game():
-                global selected_game4
-                selected_game4 = launch_game2_list.curselection()
-                open_games = open_list[selected_game4[0]]
-                result = result_search_index_games[selected_game][open_games]
-                print(result)
-                result2 = result
-                #新しいゲームが出たらここを変更する
-                if ("\\th06.exe" in result) == True:
-                    result = result.replace('\\th06.exe', '')
-                if ("\\th07.exe" in result) == True:
-                    result = result.replace('\\th07.exe', '')
-                if ("\\th075.exe" in result) == True:
-                    result = result.replace('\\th075.exe', '')
-                if ("\\th08.exe" in result) == True:
-                    result = result.replace('\\th08.exe', '')
-                if ("\\th09.exe" in result) == True:
-                    result = result.replace('\\th09.exe', '')
-                if ("\\th095.exe" in result) == True:
-                    result = result.replace('\\th095.exe', '')
-                if ("\\th10.exe" in result) == True:
-                    result = result.replace('\\th10.exe', '')
-                if ("\\th105.exe" in result) == True:
-                    result = result.replace('\\th105.exe', '')
-                if ("\\th11.exe" in result) == True:
-                    result = result.replace('\\th11.exe', '')
-                if ("\\th12.exe" in result) == True:
-                    result = result.replace('\\th12.exe', '')
-                if ("\\th123.exe" in result) == True:
-                    result = result.replace('\\th123.exe', '')
-                if ("\\th125.exe" in result) == True:
-                    result = result.replace('\\th125.exe', '')
-                if ("\\th128.exe" in result) == True:
-                    result = result.replace('\\th128.exe', '')
-                if ("\\th13.exe" in result) == True:
-                    result = result.replace('\\th13.exe', '')
-                if ("\\th135.exe" in result) == True:
-                    result = result.replace('\\th135.exe', '')
-                if ("\\th14.exe" in result) == True:
-                    result = result.replace('\\th14.exe', '')
-                if ("\\th143.exe" in result) == True:
-                    result = result.replace('\\th143.exe', '')
-                if ("\\th145.exe" in result) == True:
-                    result = result.replace('\\th145.exe', '')
-                if ("\\th15.exe" in result) == True:
-                    result = result.replace('\\th15.exe', '')
-                if ("\\th155.exe" in result) == True:
-                    result = result.replace('\\th155.exe', '')
-                if ("\\th16.exe" in result) == True:
-                    result = result.replace('\\th16.exe', '')
-                if ("\\th165.exe" in result) == True:
-                    result = result.replace('\\th165.exe', '')
-                if ("\\th17.exe" in result) == True:
-                    result = result.replace('\\th17.exe', '')
-                if ("\\th175.exe" in result) == True:
-                    result = result.replace('\\th175.exe', '')
-                if ("\\th18.exe" in result) == True:
-                    result = result.replace('\\th18.exe', '')
-                if ("\\th19.exe" in result) == True:
-                    result = result.replace('\\th19.exe', '')
-                print(result2)
-                print(result)
-                launcher.destroy()
-                launch_game2.destroy()
-                subprocess.run(result2,shell=True,cwd=result)
-                exit()
+                try:
+                    global selected_game4
+                    selected_game4 = launch_game2_list.curselection()
+                    open_games = open_list[selected_game4[0]]
+                    result = result_search_index_games[selected_game][open_games]
+                    print(result)
+                    result2 = result
+                    #新しいゲームが出たらここを変更する
+                    if ("\\th06.exe" in result) == True:
+                        result = result.replace('\\th06.exe', '')
+                    if ("\\th07.exe" in result) == True:
+                        result = result.replace('\\th07.exe', '')
+                    if ("\\th075.exe" in result) == True:
+                        result = result.replace('\\th075.exe', '')
+                    if ("\\th08.exe" in result) == True:
+                        result = result.replace('\\th08.exe', '')
+                    if ("\\th09.exe" in result) == True:
+                        result = result.replace('\\th09.exe', '')
+                    if ("\\th095.exe" in result) == True:
+                        result = result.replace('\\th095.exe', '')
+                    if ("\\th10.exe" in result) == True:
+                        result = result.replace('\\th10.exe', '')
+                    if ("\\th105.exe" in result) == True:
+                        result = result.replace('\\th105.exe', '')
+                    if ("\\th11.exe" in result) == True:
+                        result = result.replace('\\th11.exe', '')
+                    if ("\\th12.exe" in result) == True:
+                        result = result.replace('\\th12.exe', '')
+                    if ("\\th123.exe" in result) == True:
+                        result = result.replace('\\th123.exe', '')
+                    if ("\\th125.exe" in result) == True:
+                        result = result.replace('\\th125.exe', '')
+                    if ("\\th128.exe" in result) == True:
+                        result = result.replace('\\th128.exe', '')
+                    if ("\\th13.exe" in result) == True:
+                        result = result.replace('\\th13.exe', '')
+                    if ("\\th135.exe" in result) == True:
+                        result = result.replace('\\th135.exe', '')
+                    if ("\\th14.exe" in result) == True:
+                        result = result.replace('\\th14.exe', '')
+                    if ("\\th143.exe" in result) == True:
+                        result = result.replace('\\th143.exe', '')
+                    if ("\\th145.exe" in result) == True:
+                        result = result.replace('\\th145.exe', '')
+                    if ("\\th15.exe" in result) == True:
+                        result = result.replace('\\th15.exe', '')
+                    if ("\\th155.exe" in result) == True:
+                        result = result.replace('\\th155.exe', '')
+                    if ("\\th16.exe" in result) == True:
+                        result = result.replace('\\th16.exe', '')
+                    if ("\\th165.exe" in result) == True:
+                        result = result.replace('\\th165.exe', '')
+                    if ("\\th17.exe" in result) == True:
+                        result = result.replace('\\th17.exe', '')
+                    if ("\\th175.exe" in result) == True:
+                        result = result.replace('\\th175.exe', '')
+                    if ("\\th18.exe" in result) == True:
+                        result = result.replace('\\th18.exe', '')
+                    if ("\\th19.exe" in result) == True:
+                        result = result.replace('\\th19.exe', '')
+                    print(result2)
+                    print(result)
+                    launcher.destroy()
+                    launch_game2.destroy()
+                    subprocess.run(result2,shell=True,cwd=result)
+                    exit()
+                except TypeError as e:
+                    messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
             
             def open_game_cancel():
                 launch_game2.destroy()
             
+            def rename():
+                try:
+                    global selected_game4
+                    selected_game4 = launch_game2_list.curselection()
+                    open_games = open_list[selected_game4[0]]
+                    result = result_search_index_games[selected_game][open_games]
+                    rename_window = Tk()
+                    rename_window.geometry("500x100")
+                    rename_window.title("東方原作ランチャー ver.1.1.0")
+                    rename_label = Label(rename_window,text="以下のディレクトリの表示名を入力してください。",font=30)
+                    rename_label2 = Label(rename_window,text=result)
+                    rename_entry = Entry(rename_window,width=490)
+                    if result_search_index_games[selected_game][open_games] in file_names:
+                        rename_entry.insert(END,file_names[result_search_index_games[selected_game][open_games]])
+                    
+                    def rename_s():
+                        rename_e = rename_entry.get()
+                        if len(rename_e) > 0:
+                            file_names[result] = rename_e
+                            data_update()
+                            renames = False
+                            rename_window.destroy()
+                        elif "\\" in rename_e:
+                            messagebox.showerror("エラー","使えない文字が含まれています。\n使えない文字：\\")
+                        elif len(rename_e) == 0:
+                            messagebox.showerror("エラー","変更する名前を入力してください。")
+                    
+                    def rename_r():
+                        #global selected_game4
+                        #selected_game4 = launch_game2_list.curselection()
+                        #open_games = open_list[selected_game4[0]]
+                        #result = result_search_index_games[selected_game][open_games]
+                        hyouji = open_list_h[open_games]
+                        question = messagebox.askquestion("表示名リセット",f"表示名「{hyouji}」を本当にリセットしますか？")
+                        if question == 'yes':
+                            file_names.pop(result_search_index_games[selected_game][open_games])
+                            data_update()
+                    
+                    def rename_c():
+                        renames = False
+                        rename_window.destroy()
+                    
+                    rename_setting = Button(rename_window,text="変更を適用",font=30,command=rename_s)
+                    rename_reset = Button(rename_window,text="表示名をリセット",font=30,command=rename_r)
+                    rename_cancel = Button(rename_window,text="キャンセル",font=30,command=rename_c)
+                    
+                    rename_label.pack()
+                    rename_label2.pack()
+                    rename_entry.pack()
+                    rename_setting.pack(side=LEFT)
+                    rename_reset.pack(side=LEFT)
+                    rename_cancel.pack(side=RIGHT)
+                    rename_window.update()
+                    launch_game2.update()
+                except IndexError as e:
+                    messagebox.showerror("エラー",f"ゲームが選択されておりません。\nIndexError : {e}")
+            
             launch_game2_label = ttk.Label(launch_game2,text="該当する項目が複数見つかりました。\nどのディレクトリのゲームを起動するか選択してください。",font=30)
             launch_game2_list = Listbox(launch_game2,width=490,font=20,height=5)
             for i in range(len(result_search_index_games[selected_game])):
-                launch_game2_list.insert(END,result_search_index_games[selected_game][i])
+                if result_search_index_games[selected_game][i] in file_names:
+                    launch_game2_list.insert(END,file_names[result_search_index_games[selected_game][i]])
+                    open_list_h.append(file_names[result_search_index_games[selected_game][i]])
+                else:
+                    launch_game2_list.insert(END,result_search_index_games[selected_game][i])
+                    open_list_h.append(result_search_index_games[selected_game][i])
                 open_list.append(i)
             launch_game2_open = Button(text="ゲーム開始",font=30,command=open_game)
+            launch_game2_rename = Button(text="表示名を編集",font=30,command=rename)
             launch_game2_cancel = Button(text="キャンセル",font=30,command=open_game_cancel)
-            
             launch_game2_label.pack()
             launch_game2_list.pack()
             launch_game2_open.pack(side=LEFT)
+            launch_game2_rename.pack(side=LEFT)
             launch_game2_cancel.pack(side=RIGHT)
             launch_game2.update()
         elif len(result_search_index_games) == 1:

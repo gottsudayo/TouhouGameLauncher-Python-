@@ -30,7 +30,7 @@ def exit_py():
 
 messages = {"Japanese":[
     "ディレクトリ検索中",
-    "東方原作ランチャー ver.1.3.0",
+    "東方原作ランチャー ver.2.0.1",
     "ゲームを選択してください。",
     "ゲームを起動",
     "custom.exeを起動",
@@ -80,7 +80,7 @@ messages = {"Japanese":[
     ],
             "English":[
                 "Searching Directory...",
-                "Touhou Game Launcher ver1.3.0",
+                "Touhou Game Launcher ver2.0.1",
                 "Please select a game.",
                 "Launch game",
                 "Launch custom.exe",

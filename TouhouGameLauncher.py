@@ -8,6 +8,7 @@ from tkinter import Tk
 from tkinter import Listbox
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 from pathlib import Path
 import getpass
 import subprocess
@@ -16,54 +17,182 @@ import os
 import codecs
 import sys
 from time import sleep
+import webbrowser
 
 #続いていろいろな関数の定義
+global dire
+global setting
 dire = []
-
+setting = []
 def exit_py():
     app = False
     sys.exit()
-    
+
+messages = {"Japanese":[
+    "ディレクトリ検索中",
+    "東方原作ランチャー ver.1.3.0",
+    "ゲームを選択してください。",
+    "ゲームを起動",
+    "custom.exeを起動",
+    "リストを更新",
+    "メッセージ",
+    "データの保存が完了しました。",
+    "エラー",
+    "ゲームが選択されておりません。\nTypeError : ",
+    "以下のパスの表示名を入力してください。",
+    "使えない文字が含まれています。\n使えない文字：\\",
+    "変更する名前を入力してください。",
+    "表示名リセット",
+    "次の表示名を本当にリセットしますか？\n",
+    "",
+    "変更を適用",
+    "表示名をリセット",
+    "キャンセル",
+    "該当する項目が複数見つかりました。\nどの階層のゲームを起動するか選択してください。",
+    "ゲーム開始",
+    "表示名を編集",
+    "指定したゲームが以下ディレクトリから見つかりませんでした。\n",
+    "custom.exeが見つかりませんでした。同じ階層に入れてください。\n正しい位置：",
+    "該当する項目が複数見つかりました。\nどの階層のゲームのcustom.exeを起動するか選択してください。",
+    "custom.exeを開く",
+    "指定したcustom.exeが以下ディレクトリから見つかりませんでした。\n",
+    "設定",
+    "参照ディレクトリ設定",
+    "検索するフォルダを選択",
+    "ディレクトリが選択されておりません。\nIndexError : ",
+    "追加",
+    "削除",
+    "閉じる",
+    "設定の保存が完了しました。",
+    "参照ディレクトリ設定",
+    "設定を保存",
+    "東方原作ランチャー",
+    "ゲームを起動",
+    "custom.exeを起動",
+    "リストを更新",
+    "終了",
+    "このアプリについて",
+    "ソースコード",
+    "公式Wiki",
+    "お問い合わせ",
+    "ヘルプ",
+    "ファイル"
+    ],
+            "English":[
+                "Searching Directory...",
+                "Touhou Game Launcher ver1.3.0",
+                "Please select a game.",
+                "Launch game",
+                "Launch custom.exe",
+                "Reload",
+                "Message",
+                "Completed saving data.",
+                "Error",
+                "You didn't select a game.\nTypeError : ",
+                "Please enter this display name.",
+                "Invalid text is in this.\nInvalid text:\\",
+                "Please enter this display name.",
+                "Reset display name",
+                "Will you reset display name?",
+                "",
+                "Apply changes",
+                "Reset display name",
+                "Cancel",
+                "Some results were found.\nWhich one will you launch?",
+                "Start",
+                "Change display name",
+                "This game was not found in them.\n",
+                "This custom.exe was not found.\nIs this custom.exe went in same directory?\nRight place:",
+                "Some results were found.\nWhich one will you launch?",
+                "Open custom.exe",
+                "This custom.exe was not found in them.\n",
+                "Settings",
+                "Where to find game settings",
+                "Select folder",
+                "You didn't select directory.\nIndexError : ",
+                "Append",
+                "Delete",
+                "Close",
+                "Settings was saved.",
+                "Where to find game settings",
+                "Save settings",
+                "Touhou Game Launcher",
+                "Launch game",
+                "Launch custom.exe",
+                "Reload list",
+                "Exit",
+                "What is this application",
+                "Sorce code",
+                "Official wiki",
+                "Contact us",
+                "Help",
+                "File"
+            ]}
+
 #data.jsonの読み込み
-file_names = {}
+data = []
 p = Path('data.json')
 if os.path.isfile(p.resolve()):
     try:
         with open('data.json',mode="r",encoding="utf-8") as f:
-            file_names = json.load(f)
+            data = json.load(f)
+        global file_names
+        file_names = data[0]
+        dire = data[1]
+        setting = data[2]
     except TypeError as e:
         messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
         exit_py()
 else:
     messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
     exit_py()
-    
-#dire.jsonの読み込み
-p = Path('dire.json')
-if os.path.isfile(p.resolve()):
-    try:
-        with open('dire.json',mode="r",encoding="utf-8") as f:
-            dire = json.load(f)
-    except TypeError as e:
-        messagebox.showerror("エラー",f"dict.jsonファイルの読み込みに失敗しました。\nランチャーを再ダウンロードするか、dict.jsonの中身を戻してください。\nTypeError : {e}")
-        exit_py()
-else:
-    messagebox.showerror("エラー","dict.jsonファイルが同じフォルダの中に見つかりません。必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
-    exit_py()
-    
-#dire.jsonのディレクトリが存在していればスルー、1つでも存在していないものがあれば自動的にリロードするため、direを初期化。
+
+def data_json_update(message):
+    data = [{},[],[]]
+    data[0] = file_names
+    data[1] = dire
+    data[2] = setting
+    with open("data.json","w") as f:
+        json.dump(data,f)
+    if message == "":
+        messagebox.showinfo(messages[language][6],messages[language][7])
+    elif message != None:
+        messagebox.showinfo(messages[language][6],message)
+    reload()
+
+#direのディレクトリが存在していればスルー、1つでも存在していないものがあれば自動的にリロードするため、dataのdireを初期化。
 for i in dire:
     if os.path.exists(i) == False:
         print(os.path.exists(i))
         print("ディレクトリ：" + i + "、非存在")
         print("リストを初期化")
         dire = []
-        with open("dire.json","w") as f:
-            json.dump(dire,f)
+        data[1] = dire
+        with open("data.json","w") as f:
+            json.dump(data,f)
         break
     else:
         print(os.path.exists(i))
         print("ディレクトリ：" + i + "、存在確認")
+
+user = getpass.getuser()
+
+if len(setting[0]) == 0:
+    setting[0].append("C:\\Users\\" + user)
+    data[2] = setting
+    with open("data.json","w") as f:
+        json.dump(data, f)
+
+#dataからsettingのlanguageを検出
+global language
+if len(data[2]) == 2:
+    language = data[2][1]
+else:
+    language = "Japanese"
+    setting.append(language)
+    data[2] = setting
+    with open("data.json","w") as f:
+        json.dump(data,f)
 
 def selected_index():
     selected_game2 = gamelist.curselection()
@@ -77,25 +206,46 @@ app = True
 def file_load():
     #様々な変数のグローバル化
     global Ingames
-    global user
     global kensaku
+    global data
+    
+    #data.jsonの読み込み
+    data = []
+    p = Path('data.json')
+    if os.path.isfile(p.resolve()):
+        try:
+            with open('data.json',mode="r",encoding="utf-8") as f:
+                data = json.load(f)
+            dire = []
+            setting = []
+            file_names = data[0]
+            dire = data[1]
+            setting = data[2]
+            language = setting[1]
+        except TypeError as e:
+            messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
+            exit_py()
+    else:
+        messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
+        exit_py()
     
     #ディレクトリ検索用のウィンドウを生成する。
     kensaku = Tk()
-    kensaku.title("東方原作ランチャー ver.1.2.0")
+    kensaku.title(messages[language][1])
     kensaku.geometry("300x100")
-    kensakuchu = ttk.Label(kensaku,text="ディレクトリ検索中",font=(30))
+    kensaku.iconbitmap(default="icon.ico")
+    kensakuchu = ttk.Label(kensaku,text=messages[language][0],font=30)
     kensakuchu.pack()
     kensaku.update()
     kensaku.lift()
-    
-    user = getpass.getuser()
-    folder = Path("C:\\Users\\" + user)
-    
     Ingames = []
     kensaku.update()
-    for i in folder.glob("**/th[0-9][0-9].exe"):
-        Ingames.append(str(i))
+    
+    for j in setting[0]:
+        folder = Path(j)
+        print("ディレクトリ「" + str(folder) + "」を探索中")
+        for i in folder.glob("**/th[0-9][0-9].exe"):
+            Ingames.append(str(i))
         
 
 def load():
@@ -190,7 +340,7 @@ def load():
     game_list = []
     for item in item_game_list:
         launch_list.append(item)
-        game_list.append(games[item])
+        game_list.append(games[language][item])
     
     #存在するゲームの候補を出すListBox
     gamelist_var = StringVar(launcher,value=game_list)
@@ -219,19 +369,26 @@ def load():
     dire = []
     for i in Ingames:
         dire.append(i)
-    #direを元にdire.jsonを更新
-    with open('dire.json',"w") as f:
-        json.dump(dire,f)
+    data[1] = dire
+    with open('data.json',"w") as f:
+        json.dump(data,f)
     
 
 def reload():
     #data.jsonの読み込み
-    file_names = {}
+    global data
+    data = []
     p = Path('data.json')
     if os.path.isfile(p.resolve()):
         try:
             with open('data.json',mode="r",encoding="utf-8") as f:
-                file_names = json.load(f)
+                data = json.load(f)
+            dire = []
+            setting = []
+            file_names = data[0]
+            dire = data[1]
+            setting = data[2]
+            language = setting[1]
         except TypeError as e:
             messagebox.showerror("エラー",f"data.jsonファイルの読み込みに失敗しました。\nランチャーの再ダウンロードをするか、data.jsonの中身を元に戻してください。\nTypeError : {e}")
             exit_py()
@@ -243,18 +400,40 @@ def reload():
     global launcher
     launcher.destroy()
     launcher = Tk()
-    launcher.title("東方原作ランチャー ver.1.2.0")
+    launcher.title(messages[language][1])
     launcher.geometry("500x410")
-    launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
+    launcher.iconbitmap(default="icon.ico")
+    launcherLabel = ttk.Label(launcher,text=messages[language][2],font=30)
     #ディレクトリ検索
     file_load()
     #インデックス作成
     load()
     #オブジェクト配置
-    game_exe = Button(launcher,text="ゲームを起動",command=launch_game,font=20)
-    custom_exe = Button(launcher,text="custom.exeを起動",command=launch_custom,font=20)
-    list_update = Button(launcher,text="リストを更新",command=reload,font=20)
-
+    game_exe = Button(launcher,text=messages[language][3],command=launch_game,font=20)
+    custom_exe = Button(launcher,text=messages[language][4],command=launch_custom,font=20)
+    list_update = Button(launcher,text=messages[language][5],command=reload,font=20)
+    menubar = Menu(launcher)
+    launcher.config(menu=menubar)
+    
+    menu_file = Menu(menubar,tearoff=0)
+    menu_file.add_command(label=messages[language][27],command=settings)
+    menu_file.add_separator()
+    menu_file.add_command(label=messages[language][41],command=exit_py)
+    menubar.add_cascade(label=messages[language][47],menu=menu_file)
+    
+    menu_language = Menu(menubar,tearoff=0)
+    menu_language.add_command(label="日本語",command=change_Japanese)
+    menu_language.add_command(label="English",command=change_English)
+    menubar.add_cascade(label="languages",menu=menu_language)
+    
+    menu_help = Menu(menubar,tearoff=0)
+    menu_help.add_command(label=messages[language][42],command=app_info)
+    menu_help.add_separator()
+    menu_help.add_command(label=messages[language][43],command=open_sorce)
+    menu_help.add_command(label=messages[language][44],command=open_wiki)
+    menu_help.add_command(label=messages[language][45],command=open_otoiawase)
+    menubar.add_cascade(label=messages[language][46],menu=menu_help)
+    
     launcherLabel.pack()
     gamelist.pack()
     game_exe.pack(side=LEFT)
@@ -262,44 +441,79 @@ def reload():
     list_update.pack(side=LEFT)
     kensaku.destroy()
 
+
 #「ゲーム実行ファイル名：東方のゲーム名等」でまとめてあるリスト
 #新しいゲームが出たらここを変更する
-games = {"th06.exe":["東方紅魔郷","とうほうこうまきょう","2002"],
-         "th07.exe":["東方妖々夢","とうほうようようむ","2003"],
-         "th075.exe":["東方萃夢想","とうほうすいむそう","2004"],
-         "th08.exe":["東方永夜抄","とうほうえいやしょう","2004"],
-         "th09.exe":["東方花映塚","とうほうかえいづか","2005"],
-         "th095.exe":["東方文花帖","とうほうぶんかちょう","2005"],
-         "th10.exe":["東方風神録","とうほうふうじんろく","2007"],
-         "th105.exe":["東方緋想天","とうほうひそうてん","2008"],
-         "th11.exe":["東方地霊殿","とうほうちれいでん","2008"],
-         "th12.exe":["東方星蓮船","とうほうせいれんせん","2009"],
-         "th123.exe":["東方非想天則","とうほうひそうてんそく","2009"],
-         "th125.exe":["ダブルスポイラー～東方文花帖","だぶるすぽいらー～とうほうぶんかちょう","2010"],
-         "th128.exe":["妖精大戦争～東方三月精","ようせいだいせんそう～とうほうさんげつせい","2010"],
-         "th13.exe":["東方神霊廟","とうほうしんれいびょう","2011"],
-         "th135.exe":["東方心綺楼","とうほうしんきろう","2013"],
-         "th14.exe":["東方輝針城","とうほうきしんじょう","2013"],
-         "th143.exe":["弾幕アマノジャク","だんまくあまのじゃく","2014"],
-         "th145.exe":["東方深秘録","とうほうしんぴろく","2015"],
-         "th15.exe":["東方紺珠伝","とうほうかんじゅでん","2015"],
-         "th155.exe":["東方憑依華","とうほうひょういばな","2017"],
-         "th16.exe":["東方天空章","とうほうてんくうしょう","2017"],
-         "th165.exe":["秘封ナイトメアダイアリー","ひふうないとめあだいありー","2018"],
-         "th17.exe":["東方鬼形獣","とうほうきけいじゅう","2019"],
-         "th175.exe":["東方剛欲異聞","とうほうごうよくいぶん","2021"],
-         "th18.exe":["東方虹龍洞","とうほうこうりゅうどう","2021"],
-         "th185.exe":["バレットフィリア達の闇市場","ばれっとふぃりあたちのやみいちば","2022"],
-         "th19.exe":["東方獣王園","とうほうじゅうおうえん","2023"]}
+games = {"Japanese":
+    {"th06.exe":["東方紅魔郷　とうほうこうまきょう","2002"],
+        "th07.exe":["東方妖々夢　とうほうようようむ","2003"],
+        "th075.exe":["東方萃夢想　とうほうすいむそう","2004"],
+        "th08.exe":["東方永夜抄　とうほうえいやしょう","2004"],
+        "th09.exe":["東方花映塚　とうほうかえいづか","2005"],
+        "th095.exe":["東方文花帖　とうほうぶんかちょう","2005"],
+        "th10.exe":["東方風神録　とうほうふうじんろく","2007"],
+        "th105.exe":["東方緋想天　とうほうひそうてん","2008"],
+        "th11.exe":["東方地霊殿　とうほうちれいでん","2008"],
+        "th12.exe":["東方星蓮船　とうほうせいれんせん","2009"],
+        "th123.exe":["東方非想天則　とうほうひそうてんそく","2009"],
+        "th125.exe":["ダブルスポイラー～東方文花帖　だぶるすぽいらー～とうほうぶんかちょう","2010"],
+        "th128.exe":["妖精大戦争～東方三月精　ようせいだいせんそう～とうほうさんげつせい","2010"],
+        "th13.exe":["東方神霊廟　とうほうしんれいびょう","2011"],
+        "th135.exe":["東方心綺楼　とうほうしんきろう","2013"],
+        "th14.exe":["東方輝針城　とうほうきしんじょう","2013"],
+        "th143.exe":["弾幕アマノジャク　だんまくあまのじゃく","2014"],
+        "th145.exe":["東方深秘録　とうほうしんぴろく","2015"],
+        "th15.exe":["東方紺珠伝　とうほうかんじゅでん","2015"],
+        "th155.exe":["東方憑依華　とうほうひょういばな","2017"],
+        "th16.exe":["東方天空章　とうほうてんくうしょう","2017"],
+        "th165.exe":["秘封ナイトメアダイアリー　ひふうないとめあだいありー","2018"],
+        "th17.exe":["東方鬼形獣　とうほうきけいじゅう","2019"],
+        "th175.exe":["東方剛欲異聞　とうほうごうよくいぶん","2021"],
+        "th18.exe":["東方虹龍洞　とうほうこうりゅうどう","2021"],
+        "th185.exe":["バレットフィリア達の闇市場　ばれっとふぃりあたちのやみいちば","2022"],
+        "th19.exe":["東方獣王園　とうほうじゅうおうえん","2023"]
+        },
+        "English":
+            {
+                "th06.exe":["Touhou Koumakyo","2002"],
+                "th07.exe":["Touhou Youyoumu","2003"],
+                "th075.exe":["Touhou Suimusou","2004"],
+                "th08.exe":["Touhou Eiyasho","2004"],
+                "th09.exe":["Touhou Kaeizuka","2005"],
+                "th095.exe":["Touhou Bunkacho","2005"],
+                "th10.exe":["Touhou Fujinroku","2007"],
+                "th105.exe":["Touhou Hisouten","2008"],
+                "th11.exe":["Touhou Chireiden","2008"],
+                "th12.exe":["Touhou Seirensen","2009"],
+                "th123.exe":["Touhou Hisoutensoku","2009"],
+                "th125.exe":["Double Spoiler ~ Touhou Bunkacho","2010"],
+                "th128.exe":["Yousei Daisensou ~ Touhou Sangetsusei","2010"],
+                "th13.exe":["Touhou Shinreibyo","2011"],
+                "th135.exe":["Touhou Shinkiro","2013"],
+                "th14.exe":["Touhou Kishinjo","2013"],
+                "th143.exe":["Danmaku Amanojaku","2014"],
+                "th145.exe":["Touhou Shinpiroku","2015"],
+                "th15.exe":["Touhou Kanjuden","2015"],
+                "th155.exe":["Touhou Hyoibana","2017"],
+                "th16.exe":["Touhou Tenkusho","2017"],
+                "th165.exe":["Hifu Nightmare Diary","2018"],
+                "th17.exe":["Touhou Kikeiju","2019"],
+                "th175.exe":["Touhou Goyokuibun","2021"],
+                "th18.exe":["Touhou Kouryudo","2021"],
+                "th185.exe":["Black Market of Bulletphilia","2022"],
+                "th19.exe":["Touhou Juohen","2023"]
+            }
+            }
 
 #新しいゲームが出たらここを変更する
 game_name = ["th06.exe","th07.exe","th075.exe","th08.exe","th09.exe","th095.exe","th10.exe","th105.exe","th11.exe","th12.exe","th123.exe","th125.exe","th128.exe","th13.exe","th135.exe","th14.exe","th143.exe","th145.exe","th15.exe","th155.exe","th16.exe","th165.exe","th17.exe","th18.exe","th185.exe","th19.exe"]
 
 #まずはメインウィンドウを生成
 launcher = Tk()
-launcher.title("東方原作ランチャー ver.1.2.0")
+launcher.title(messages[language][1])
 launcher.geometry("500x410")
-launcherLabel = ttk.Label(launcher,text="ゲームを選択してください。",font=30)
+launcher.iconbitmap(default="icon.ico")
+launcherLabel = ttk.Label(launcher,text=messages[language][2],font=30)
 #ここで読み込み関数実行
 if len(dire) == 0:
     file_load()
@@ -312,15 +526,6 @@ else:
         Ingames.append(i)
     load()
 
-def data_json_update():
-    for i in file_names.values():
-        i = i.replace("\\", "\\\\")
-    json_data = codecs.open("data.json","w","utf-8")
-    json.dump(file_names, json_data, indent=2, ensure_ascii=False)
-    json_data.close()
-    messagebox.showinfo("メッセージ","データの保存が完了しました。")
-    reload()
-
 def launch_game():
     #thXX.exeを起動するための処理
     try:
@@ -330,7 +535,8 @@ def launch_game():
             global launch_game2
             launch_game2 = Tk()
             launch_game2.geometry("550x200")
-            launch_game2.title("東方原作ランチャー ver.1.2.0")
+            launch_game2.title(messages[language][1])
+            launch_game2.iconbitmap(default="icon.ico")
             
             open_list = []
             open_list_h = []
@@ -401,7 +607,8 @@ def launch_game():
                     subprocess.run(result2,shell=True,cwd=result)
                     exit_py()
                 except TypeError as e:
-                    messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
+                    error = messages[language][9] + e
+                    messagebox.showerror(messages[language][8],error)
             
             def open_game_cancel():
                 launch_game2.destroy()
@@ -415,8 +622,9 @@ def launch_game():
                     result = result_search_index_games[selected_game][open_games]
                     rename_window = Tk()
                     rename_window.geometry("500x100")
-                    rename_window.title("東方原作ランチャー ver.1.2.0")
-                    rename_label = Label(rename_window,text="以下のパスの表示名を入力してください。",font=30)
+                    rename_window.title(messages[language][1])
+                    rename_window.iconbitmap(default="icon.ico")
+                    rename_label = Label(rename_window,text=messages[language][10],font=30)
                     rename_label2 = Label(rename_window,text=result)
                     rename_entry = Entry(rename_window,width=490)
                     if result_search_index_games[selected_game][open_games] in file_names:
@@ -426,28 +634,29 @@ def launch_game():
                         rename_e = rename_entry.get()
                         if len(rename_e) > 0:
                             file_names[result] = rename_e
-                            data_json_update()
+                            data_json_update("")
                             renames = False
                             rename_window.destroy()
                         elif "\\" in rename_e:
-                            messagebox.showerror("エラー","使えない文字が含まれています。\n使えない文字：\\")
+                            messagebox.showerror(messages[language][8],messages[language][11])
                         elif len(rename_e) == 0:
-                            messagebox.showerror("エラー","変更する名前を入力してください。")
+                            messagebox.showerror(messages[language][8],messages[language][12])
                     
                     def rename_r():
                         hyouji = open_list_h[open_games]
-                        question = messagebox.askquestion("表示名リセット",f"表示名「{hyouji}」を本当にリセットしますか？")
+                        msg = messages[language][14] + hyouji
+                        question = messagebox.askquestion(messages[language][13],msg)
                         if question == 'yes':
                             file_names.pop(result_search_index_games[selected_game][open_games])
-                            data_json_update()
+                            data_json_update("")
                     
                     def rename_c():
                         renames = False
                         rename_window.destroy()
                     
-                    rename_setting = Button(rename_window,text="変更を適用",font=30,command=rename_s)
-                    rename_reset = Button(rename_window,text="表示名をリセット",font=30,command=rename_r)
-                    rename_cancel = Button(rename_window,text="キャンセル",font=30,command=rename_c)
+                    rename_setting = Button(rename_window,text=messages[language][16],font=30,command=rename_s)
+                    rename_reset = Button(rename_window,text=messages[language][17],font=30,command=rename_r)
+                    rename_cancel = Button(rename_window,text=messages[language][18],font=30,command=rename_c)
                     
                     rename_label.pack()
                     rename_label2.pack()
@@ -458,9 +667,10 @@ def launch_game():
                     rename_window.update()
                     launch_game2.update()
                 except IndexError as e:
-                    messagebox.showerror("エラー",f"ゲームが選択されておりません。\nIndexError : {e}")
+                    error = messages[language][9] + e
+                    messagebox.showerror(messages[language][8],error)
             
-            launch_game2_label = ttk.Label(launch_game2,text="該当する項目が複数見つかりました。\nどの階層のゲームを起動するか選択してください。",font=30)
+            launch_game2_label = ttk.Label(launch_game2,text=messages[language][19],font=30)
             launch_game2_list = Listbox(launch_game2,width=490,font=20,height=5)
             for i in range(len(result_search_index_games[selected_game])):
                 if result_search_index_games[selected_game][i] in file_names:
@@ -470,9 +680,9 @@ def launch_game():
                     launch_game2_list.insert(END,result_search_index_games[selected_game][i])
                     open_list_h.append(result_search_index_games[selected_game][i])
                 open_list.append(i)
-            launch_game2_open = Button(launch_game2,text="ゲーム開始",font=30,command=open_game)
-            launch_game2_rename = Button(launch_game2,text="表示名を編集",font=30,command=rename)
-            launch_game2_cancel = Button(launch_game2,text="キャンセル",font=30,command=open_game_cancel)
+            launch_game2_open = Button(launch_game2,text=messages[language][20],font=30,command=open_game)
+            launch_game2_rename = Button(launch_game2,text=messages[language][21],font=30,command=rename)
+            launch_game2_cancel = Button(launch_game2,text=messages[language][18],font=30,command=open_game_cancel)
             launch_game2_label.pack()
             launch_game2_list.pack()
             launch_game2_open.pack(side=LEFT)
@@ -480,7 +690,8 @@ def launch_game():
             launch_game2_cancel.pack(side=RIGHT)
             launch_game2.update()
         elif len(result_search_index_games[selected_game]) == 1:
-            result = result_search_index_games[0][0]
+            print(result_search_index_games[selected_game][0])
+            result = result_search_index_games[selected_game][0]
             result2 = result
             #新しいゲームが出たらここを変更する
             if ("\\th06.exe" in result) == True:
@@ -540,9 +751,13 @@ def launch_game():
             subprocess.run(result2,shell=True,cwd=result)
             exit_py()
         elif len(result_search_index_games[selected_game]) == 0:
-            messagebox.showerror("エラー",("指定したゲームが「C:\\Users\\" + user + "」内から見つかりませんでした。"))
+            error = messages[language][22]
+            for i in setting[0]:
+                error = error + i + ",\n"
+            messagebox.showerror(messages[language][8],error)
     except TypeError as e:
-        messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
+        error = messages[language][9] + e
+        messagebox.showerror(messages[language][8],error)
 
 def launch_custom():
     try:
@@ -552,7 +767,8 @@ def launch_custom():
             global launch_custom2
             launch_custom2 = Tk()
             launch_custom2.geometry("550x200")
-            launch_custom2.title("東方原作ランチャー ver.1.2.0")
+            launch_custom2.title(messages[language][1])
+            launch_custom2.iconbitmap(default="icon.ico")
             open_list = []
             open_list_h = []
             
@@ -570,14 +786,16 @@ def launch_custom():
                         print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
                         subprocess.run(result2,shell=True,cwd=result)
                     else:
-                        messagebox.showerror("エラー",f"custom.exeが見つかりませんでした。同じ階層に入れてください。\n正しい位置：{result}")
+                        error = messages[language][23] + result
+                        messagebox.showerror(messages[language][8],error)
                 except IndexError as e:
-                    messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
+                    error = messages[language][9] + e
+                    messagebox.showerror(messages[language][8],error)
             
             def open_custom_cancel():
                 launch_custom2.destroy()
             
-            launch_custom2_label = ttk.Label(launch_custom2,text="該当する項目が複数見つかりました。\nどの階層のゲームのcustom.exeを起動するか選択してください。",font=30)
+            launch_custom2_label = ttk.Label(launch_custom2,text=messages[language][24],font=30)
             launch_custom2_list = Listbox(launch_custom2,width=490,font=20,height=5)
             for i in range(len(result_search_index_games[selected_game])):
                 if result_search_index_games[selected_game][i] in file_names:
@@ -587,8 +805,8 @@ def launch_custom():
                     launch_custom2_list.insert(END,result_search_index_games[selected_game][i])
                     open_list_h.append(result_search_index_games[selected_game][i])
                 open_list.append(i)
-            launch_custom2_open = Button(launch_custom2,text="custom.exeを開く",font=30,command=open_custom)
-            launch_custom2_cancel = Button(launch_custom2,text="キャンセル",font=30,command=open_custom_cancel)
+            launch_custom2_open = Button(launch_custom2,text=messages[language][25],font=30,command=open_custom)
+            launch_custom2_cancel = Button(launch_custom2,text=messages[language][18],font=30,command=open_custom_cancel)
             launch_custom2_label.pack()
             launch_custom2_list.pack()
             launch_custom2_open.pack(side=LEFT)
@@ -602,16 +820,150 @@ def launch_custom():
                 print("アプリを開く：「" + result2 + "」、「" + result + "」の上で")
                 subprocess.run(result2,shell=True,cwd=result)
             else:
-                messagebox.showerror("エラー",f"custom.exeが見つかりませんでした。同じ階層に入れてください。\n正しい位置：{result}")
+                error = messages[language][23] + result
+                messagebox.showerror(messages[language][8],error)
         elif len(result_search_index_custom[selected_game]) == 0:
-            messagebox.showerror("エラー",("指定したcustom.exeが「C:\\Users\\" + user + "」内から見つかりませんでした。"))
+            error = messages[language][26]
+            for i in setting[0]:
+                error = error + i + ",\n"
+            messagebox.showerror(messages[language][8],error)
     except TypeError as e:
-        messagebox.showerror("エラー",f"ゲームが選択されておりません。\nTypeError : {e}")
+        error = messages[language][9] + e
+        messagebox.showerror(messages[language][8],error)
         
+def settings():
+    setting_window = Tk()
+    setting_window.geometry("400x400")
+    setting_window.title(messages[language][27])
+    setting_window.iconbitmap("icon.ico")
+    
+    def set0_w():
+        set0_window = Tk()
+        set0_window.geometry("400x400")
+        set0_window.title(messages[language][28])
+        set0_window.iconbitmap("icon.ico")
+        
+        global search_dire_k
+        search_dire_k = []
+        for i in setting[0]:
+            search_dire_k.append(i)
+        print(search_dire_k)
+        dire_list_var = StringVar(set0_window,value=search_dire_k)
+        dire_list = Listbox(set0_window,width=100,font=30,listvariable=dire_list_var)
+        dire_list_var.set(search_dire_k)
+        
+        def folder_add():
+            folder = filedialog.askdirectory(title=messages[language][29],initialdir="PC")
+            if folder != "":
+                search_dire_k.append(folder)
+                dire_list_var.set(search_dire_k)
+        def folder_delete():
+            try:
+                selected_folder = dire_list.get(dire_list.curselection())
+                search_dire_k.remove(selected_folder)
+                dire_list_var.set(search_dire_k)
+            except IndexError as e:
+                error = messages[language][30] + e
+                messagebox.showerror(messages[language][8],error)
+            except TypeError as e:
+                error = messages[language][30] + e
+                messagebox.showerror(messages[language][8],error)
+        def close_set0():
+            set0_window.destroy()
+        
+        set0_add = Button(set0_window,text=messages[language][31],font=30,command=folder_add)
+        set0_delete = Button(set0_window,text=messages[language][32],font=30,command=folder_delete)
+        set0_close = Button(set0_window,text=messages[language][33],font=30,command=close_set0)
+        
+        dire_list.pack()
+        set0_add.pack(side=LEFT)
+        set0_delete.pack(side=LEFT)
+        set0_close.pack(side=RIGHT)
+        
+        set0_window.mainloop()
+    
+    def save_setting():
+        setting[0] = search_dire_k
+        setting_window.destroy()
+        data_json_update(messages[language][34])
+    
+    def cancel_setting():
+        setting_window.destroy()
+    
+    set0_button = Button(setting_window,text=messages[language][35],font=30,command=set0_w)
+    setting_save = Button(setting_window,text=messages[language][36],font=30,command=save_setting)
+    setting_cancel = Button(setting_window,text=messages[language][18],font=30,command=cancel_setting)
+    
+    set0_button.pack(side=LEFT)
+    setting_cancel.pack(side=RIGHT,anchor=S)
+    setting_save.pack(side=RIGHT,anchor=S)
+    
+    setting_window.mainloop()
 
-game_exe = Button(launcher,text="ゲームを起動",command=launch_game,font=20)
-custom_exe = Button(launcher,text="custom.exeを起動",command=launch_custom,font=20)
-list_update = Button(launcher,text="リストを更新",command=reload,font=20)
+def app_info():
+    info_window = Tk()
+    info_window.geometry("500x300")
+    info_window.iconbitmap("icon.ico")
+    info_window.title(messages[language][1])
+    
+    info_title = Label(info_window,text=messages[language][37],font=50)
+    info_version = Label(info_window,text="ver1.3.0\nProgramed by Gottsudayo",font=20)
+    
+    def close_info():
+        info_window.destroy()
+    
+    info_ok = Button(info_window,text="ok",font=30,command=close_info)
+    
+    info_title.pack()
+    info_version.pack()
+    info_ok.pack(side=BOTTOM)
+    
+    info_window.mainloop()
+
+game_exe = Button(launcher,text=messages[language][38],command=launch_game,font=20)
+custom_exe = Button(launcher,text=messages[language][39],command=launch_custom,font=20)
+list_update = Button(launcher,text=messages[language][40],command=reload,font=20)
+menubar = Menu(launcher)
+launcher.config(menu=menubar)
+
+menu_file = Menu(menubar,tearoff=0)
+menu_file.add_command(label=messages[language][27],command=settings)
+menu_file.add_separator()
+menu_file.add_command(label=messages[language][41],command=exit_py)
+menubar.add_cascade(label=messages[language][47],menu=menu_file)
+
+def change_Japanese():
+    global language
+    language = "Japanese"
+    setting[1] = "Japanese"
+    data_json_update("Complete change language\nApplication will be restarted.")
+def change_English():
+    global language
+    language = "English"
+    setting[1] = "English"
+    data_json_update("Complete change language\nApplication will be restarted.")
+
+menu_language = Menu(menubar,tearoff=0)
+menu_language.add_command(label="日本語",command=change_Japanese)
+menu_language.add_command(label="English",command=change_English)
+menubar.add_cascade(label="languages",menu=menu_language)
+
+def open_sorce():
+    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-")
+
+def open_wiki():
+    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-/wiki")
+
+def open_otoiawase():
+    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-/wiki/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B")
+
+menu_help = Menu(menubar,tearoff=0)
+menu_help.add_command(label=messages[language][42],command=app_info)
+menu_help.add_separator()
+menu_help.add_command(label=messages[language][43],command=open_sorce)
+menu_help.add_command(label=messages[language][44],command=open_wiki)
+menu_help.add_command(label=messages[language][45],command=open_otoiawase)
+menubar.add_cascade(label=messages[language][46],menu=menu_help)
 
 launcherLabel.pack()
 gamelist.pack()

@@ -18,6 +18,9 @@ import codecs
 import sys
 from time import sleep
 import webbrowser
+import base64
+import numpy
+from PIL import Image, ImageTk
 
 #続いていろいろな関数の定義
 global dire
@@ -30,7 +33,7 @@ def exit_py():
 
 messages = {"Japanese":[
     "ディレクトリ検索中",
-    "東方原作ランチャー ver.2.0.1",
+    "東方原作ランチャー ver.2.0.2",
     "ゲームを選択してください。",
     "ゲームを起動",
     "custom.exeを起動",
@@ -80,7 +83,7 @@ messages = {"Japanese":[
     ],
             "English":[
                 "Searching Directory...",
-                "Touhou Game Launcher ver2.0.1",
+                "Touhou Game Launcher ver2.0.2",
                 "Please select a game.",
                 "Launch game",
                 "Launch custom.exe",
@@ -126,8 +129,134 @@ messages = {"Japanese":[
                 "Official wiki",
                 "Contact us",
                 "Help",
-                "File"
-            ]}
+                "File",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ],
+        "Korean":
+    [
+        "파일을 검색고 있어요.",
+        "토우호우 프로젝트의 론쳐 ver2.0.2",
+        "게임을 선택한.",
+        "게임 시작",
+        "custom.exe 시작",
+        "리스트을 업데이트",
+        "메시지",
+        "데이터를 저장했습니다.",
+        "오류",
+        "게임가 안 선택됨.\nTypeError : ",
+        "이 피일의 표시 이름을 입력하세요.",
+        "이 문자를 사용할 수 없습니다.\n \\",
+        "이 게임은 여기에서 찾을 수 없습니다.",
+        "이 custom.exe는 찾을 수 없습니다.\n이 custom.exe는 같은 디렉토리에 있었나요? 올바른 위치:",
+        "몇 가지 결과가 발견되었습니다. 어떤 것을 실행하시겠습니까?",
+        "custom.exe 열기",
+        "이 custom.exe는 여기에서 찾을 수 없습니다.",
+        "설정",
+        "게임을 찾을 수 있는 위치",
+        "폴더 선택",
+        "디렉토리를 선택하지 않았습니다.",
+        "추가",
+        "삭제",
+        "닫기",
+        "설정이 저장되었습니다.",
+        "게임 설정을 찾을 수 있는 위치",
+        "설정 저장",
+        "토우호우 프로젝트의 론쳐",
+        "게임 시작",
+        "custom.exe 시작",
+        "목록 다시 로드",
+        "종료",
+        "이 애플리케이션은 무엇입니까",
+        "소스 코드",
+        "공식 위키",
+        "문의처",
+        "도움말",
+        "파일"
+    ]}
+
+def change_Japanese():
+    global language
+    language = "Japanese"
+    setting[1] = "Japanese"
+    data_json_update("Complete change language\nApplication will be restarted.")
+def change_English():
+    global language
+    language = "English"
+    setting[1] = "English"
+    data_json_update("Complete change language\nApplication will be restarted.")
+
+def change_Korean():
+    global language
+    language = "Korean"
+    setting[1] = "Korean"
+    data_json_update("Complete change language\nApplication will be restarted.")
+
+def open_sorce():
+    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-")
+
+def open_wiki():
+    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-/wiki")
+
+def open_otoiawase():
+    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-/wiki/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B")
+
+def launcher_widget():
+    global launcher
+    launcher = Tk()
+    launcher.title(messages[language][1])
+    launcher.geometry("500x410")
+    launcher.iconbitmap(default="icon.ico")
+    launcherLabel = ttk.Label(launcher,text=messages[language][2],font=30)
+    
+    #存在するゲームの候補を出すListBox
+    gamelist_var = StringVar(launcher,value=game_list)
+    gamelist = Listbox(launcher,width=490,font=20,height=15,listvariable=gamelist_var)
+    gamelist_var.set(game_list)
+    
+    game_exe = Button(launcher,text=messages[language][38],command=launch_game,font=20)
+    custom_exe = Button(launcher,text=messages[language][39],command=launch_custom,font=20)
+    list_update = Button(launcher,text=messages[language][40],command=reload,font=20)
+    menubar = Menu(launcher)
+    launcher.config(menu=menubar)
+    
+    menu_file = Menu(menubar,tearoff=0)
+    menu_file.add_command(label=messages[language][27],command=settings)
+    menu_file.add_separator()
+    menu_file.add_command(label=messages[language][41],command=exit_py)
+    menubar.add_cascade(label=messages[language][47],menu=menu_file)
+    
+    menu_language = Menu(menubar,tearoff=0)
+    menu_language.add_command(label="日本語",command=change_Japanese)
+    menu_language.add_command(label="English",command=change_English)
+    menu_language.add_command(label="한국어",command=change_Korean)
+    menubar.add_cascade(label="languages",menu=menu_language)
+    
+    menu_help = Menu(menubar,tearoff=0)
+    menu_help.add_command(label=messages[language][42],command=app_info)
+    menu_help.add_separator()
+    menu_help.add_command(label=messages[language][43],command=open_sorce)
+    menu_help.add_command(label=messages[language][44],command=open_wiki)
+    menu_help.add_command(label=messages[language][45],command=open_otoiawase)
+    menubar.add_cascade(label=messages[language][46],menu=menu_help)
+    
+    launcherLabel.pack()
+    gamelist.pack()
+    game_exe.pack(side=LEFT)
+    custom_exe.pack(side=LEFT)
+    list_update.pack(side=LEFT)
+    
+    launcher.update()
+    launcher.lift()
+    
+    launcher.mainloop()
 
 #data.jsonの読み込み
 data = []
@@ -186,9 +315,30 @@ if len(setting[0]) == 0:
 #dataからsettingのlanguageを検出
 global language
 if len(data[2]) == 2:
-    language = data[2][1]
+    if data[2][1] != "":
+        language = data[2][1]
+    else:
+        os_lang = os.environ['LANG']
+        if "ja" in os_lang:
+            language = "Japanese"
+        elif "ko" in os_lang:
+            language = "Korean"
+        else:
+            language = "English"
+    
+    setting.append(language)
+    data[2] = setting
+    with open("data.json","w") as f:
+        json.dump(data,f)
 else:
-    language = "Japanese"
+    os_lang = os.environ['LANG']
+    if "ja" in os_lang:
+        language = "Japanese"
+    elif "ko" in os_lang:
+        language = "Korean"
+    else:
+        language = "English"
+    
     setting.append(language)
     data[2] = setting
     with open("data.json","w") as f:
@@ -250,7 +400,7 @@ def file_load():
 
 def load():
     #様々な変数のグローバル化2
-    global gamelist
+    global game_list
     global file_names
     global result_search_index
     global result_search_index_games
@@ -342,11 +492,6 @@ def load():
         launch_list.append(item)
         game_list.append(games[language][item])
     
-    #存在するゲームの候補を出すListBox
-    gamelist_var = StringVar(launcher,value=game_list)
-    gamelist = Listbox(launcher,width=490,font=20,height=15,listvariable=gamelist_var)
-    gamelist_var.set(game_list)
-    
     result_search_index_games = []
     result_search_index_custom = []
     
@@ -375,6 +520,8 @@ def load():
     
 
 def reload():
+    #ウィンドウlauncherを閉じる
+    launcher.destroy()
     #data.jsonの読み込み
     global data
     data = []
@@ -396,50 +543,13 @@ def reload():
         messagebox.showerror("エラー","data.jsonファイルが同じフォルダの中に見つかりません。\n必ず、同じフォルダに配置してください。\nこれより、アプリケーションを終了致します。")
         exit_py()
     
-    #メインウィンドウ再生成
-    global launcher
-    launcher.destroy()
-    launcher = Tk()
-    launcher.title(messages[language][1])
-    launcher.geometry("500x410")
-    launcher.iconbitmap(default="icon.ico")
-    launcherLabel = ttk.Label(launcher,text=messages[language][2],font=30)
     #ディレクトリ検索
     file_load()
     #インデックス作成
     load()
     #オブジェクト配置
-    game_exe = Button(launcher,text=messages[language][3],command=launch_game,font=20)
-    custom_exe = Button(launcher,text=messages[language][4],command=launch_custom,font=20)
-    list_update = Button(launcher,text=messages[language][5],command=reload,font=20)
-    menubar = Menu(launcher)
-    launcher.config(menu=menubar)
-    
-    menu_file = Menu(menubar,tearoff=0)
-    menu_file.add_command(label=messages[language][27],command=settings)
-    menu_file.add_separator()
-    menu_file.add_command(label=messages[language][41],command=exit_py)
-    menubar.add_cascade(label=messages[language][47],menu=menu_file)
-    
-    menu_language = Menu(menubar,tearoff=0)
-    menu_language.add_command(label="日本語",command=change_Japanese)
-    menu_language.add_command(label="English",command=change_English)
-    menubar.add_cascade(label="languages",menu=menu_language)
-    
-    menu_help = Menu(menubar,tearoff=0)
-    menu_help.add_command(label=messages[language][42],command=app_info)
-    menu_help.add_separator()
-    menu_help.add_command(label=messages[language][43],command=open_sorce)
-    menu_help.add_command(label=messages[language][44],command=open_wiki)
-    menu_help.add_command(label=messages[language][45],command=open_otoiawase)
-    menubar.add_cascade(label=messages[language][46],menu=menu_help)
-    
-    launcherLabel.pack()
-    gamelist.pack()
-    game_exe.pack(side=LEFT)
-    custom_exe.pack(side=LEFT)
-    list_update.pack(side=LEFT)
     kensaku.destroy()
+    launcher_widget()
 
 
 #「ゲーム実行ファイル名：東方のゲーム名等」でまとめてあるリスト
@@ -502,18 +612,42 @@ games = {"Japanese":
                 "th18.exe":["Touhou Kouryudo","2021"],
                 "th185.exe":["Black Market of Bulletphilia","2022"],
                 "th19.exe":["Touhou Juohen","2023"]
-            }
+            },
+            "Korean":
+                {
+                    "th06.exe":["동방 코마쿄","2002"],
+                    "th07.exe":["동방 요요무","2003"],
+                    "th075.exe":["동방 스이무소우","2004"],
+                    "th08.exe":["동방 에이야쇼","2004"],
+                    "th09.exe":["동방 카에이즈카","2005"],
+                    "th095.exe":["동방 문화초","2005"],
+                    "th10.exe":["동방 후지로쿠","2007"],
+                    "th105.exe":["동방 히소텐","2008"],
+                    "th11.exe":["동방 치레이덴","2008"],
+                    "th12.exe":["동방 사이렌센","2009"],
+                    "th123.exe":["동방 히소텐소쿠","2009"],
+                    "th125.exe":["더블 스포일러 ~ 동방 문화초","2010"],
+                    "th128.exe":["요우세이 다이센소우 ~ 동방 산게츠세이","2010"],
+                    "th13.exe":["동방 신레이요","2011"],
+                    "th135.exe":["동방 신키로","2013"],
+                    "th14.exe":["동방 키신조","2013"],
+                    "th143.exe":["단마쿠 아마노자쿠","2014"],
+                    "th145.exe":["동방 신피로쿠","2015"],
+                    "th15.exe":["동방 칸쥬덴","2015"],
+                    "th155.exe":["동방효바나","2017"],
+                    "th16.exe":["동방천공","2017"],
+                    "th165.exe":["히푸 악몽 일기","2018"],
+                    "th17.exe":["동방 키케이주","2019"],
+                    "th175.exe":["동방 코요쿠이분","2021"],
+                    "th18.exe":["동방 고류도","2021"],
+                    "th185.exe":["불렛필리아 블랙 시장","2022"],
+                    "th19.exe":["동방 주오헨","2023"]
+                }
             }
 
 #新しいゲームが出たらここを変更する
 game_name = ["th06.exe","th07.exe","th075.exe","th08.exe","th09.exe","th095.exe","th10.exe","th105.exe","th11.exe","th12.exe","th123.exe","th125.exe","th128.exe","th13.exe","th135.exe","th14.exe","th143.exe","th145.exe","th15.exe","th155.exe","th16.exe","th165.exe","th17.exe","th18.exe","th185.exe","th19.exe"]
 
-#まずはメインウィンドウを生成
-launcher = Tk()
-launcher.title(messages[language][1])
-launcher.geometry("500x410")
-launcher.iconbitmap(default="icon.ico")
-launcherLabel = ttk.Label(launcher,text=messages[language][2],font=30)
 #ここで読み込み関数実行
 if len(dire) == 0:
     file_load()
@@ -911,7 +1045,7 @@ def app_info():
     
     def close_info():
         info_window.destroy()
-    
+        
     info_ok = Button(info_window,text="ok",font=30,command=close_info)
     
     info_title.pack()
@@ -920,58 +1054,4 @@ def app_info():
     
     info_window.mainloop()
 
-game_exe = Button(launcher,text=messages[language][38],command=launch_game,font=20)
-custom_exe = Button(launcher,text=messages[language][39],command=launch_custom,font=20)
-list_update = Button(launcher,text=messages[language][40],command=reload,font=20)
-menubar = Menu(launcher)
-launcher.config(menu=menubar)
-
-menu_file = Menu(menubar,tearoff=0)
-menu_file.add_command(label=messages[language][27],command=settings)
-menu_file.add_separator()
-menu_file.add_command(label=messages[language][41],command=exit_py)
-menubar.add_cascade(label=messages[language][47],menu=menu_file)
-
-def change_Japanese():
-    global language
-    language = "Japanese"
-    setting[1] = "Japanese"
-    data_json_update("Complete change language\nApplication will be restarted.")
-def change_English():
-    global language
-    language = "English"
-    setting[1] = "English"
-    data_json_update("Complete change language\nApplication will be restarted.")
-
-menu_language = Menu(menubar,tearoff=0)
-menu_language.add_command(label="日本語",command=change_Japanese)
-menu_language.add_command(label="English",command=change_English)
-menubar.add_cascade(label="languages",menu=menu_language)
-
-def open_sorce():
-    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-")
-
-def open_wiki():
-    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-/wiki")
-
-def open_otoiawase():
-    webbrowser.open("https://github.com/gottsudayo/TouhouGameLauncher-Python-/wiki/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B")
-
-menu_help = Menu(menubar,tearoff=0)
-menu_help.add_command(label=messages[language][42],command=app_info)
-menu_help.add_separator()
-menu_help.add_command(label=messages[language][43],command=open_sorce)
-menu_help.add_command(label=messages[language][44],command=open_wiki)
-menu_help.add_command(label=messages[language][45],command=open_otoiawase)
-menubar.add_cascade(label=messages[language][46],menu=menu_help)
-
-launcherLabel.pack()
-gamelist.pack()
-game_exe.pack(side=LEFT)
-custom_exe.pack(side=LEFT)
-list_update.pack(side=LEFT)
-
-launcher.update()
-launcher.lift()
-
-launcher.mainloop()
+launcher_widget()
